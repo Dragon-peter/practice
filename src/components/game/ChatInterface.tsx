@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ChatMessage as ChatMessageType, ChatOption } from '@/lib/game-types';
 import { AffectionBar } from './AffectionBar';
 import { ChatBubble } from './ChatBubble';
 import { OptionsList } from './OptionsList';
 import { useAudio } from '@/hooks/use-audio';
 import { VOICE_OPTIONS } from '@/lib/game-constants';
+import { VoicePickerSheet } from './VoicePickerSheet';
 
 interface ChatInterfaceProps {
   messages: ChatMessageType[];
@@ -19,6 +20,8 @@ interface ChatInterfaceProps {
   voiceId: string;
   isLoading: boolean;
   onSelectOption: (option: ChatOption) => void;
+  onVoiceChange: (voiceId: string) => void;
+  onExit: () => void;
 }
 
 export function ChatInterface({
@@ -32,10 +35,13 @@ export function ChatInterface({
   voiceId,
   isLoading,
   onSelectOption,
+  onVoiceChange,
+  onExit,
 }: ChatInterfaceProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { playPartnerMessage, audioState } = useAudio();
+  const { play, playPartnerMessage, stop, audioState } = useAudio();
   const audioUrlsRef = useRef<Record<string, string>>({});
+  const [showVoicePicker, setShowVoicePicker] = useState(false);
 
   // 自动滚动到底部
   useEffect(() => {
@@ -50,17 +56,61 @@ export function ChatInterface({
     return voice?.speakerId ?? 'zh_female_meilinvyou_saturn_bigtts';
   };
 
-  // 当对方有新消息时，自动生成 TTS
-  const handlePlayAudio = (messageId: string, content: string) => {
-    if (audioUrlsRef.current[messageId]) {
-      // 已有音频URL，直接播放
+  const currentVoiceLabel =
+    VOICE_OPTIONS.find(v => v.id === voiceId)?.label ?? '默认语音';
+
+  const handlePlayAudio = async (messageId: string, content: string) => {
+    const cachedAudioUrl = audioUrlsRef.current[messageId];
+    const isCurrentMessagePlaying =
+      audioState.isPlaying && audioState.currentMessageId === messageId;
+
+    if (isCurrentMessagePlaying) {
+      stop();
       return;
     }
-    playPartnerMessage(content, getSpeakerId());
+
+    if (cachedAudioUrl) {
+      play(cachedAudioUrl, messageId);
+      return;
+    }
+
+    const url = await playPartnerMessage(content, getSpeakerId(), messageId);
+    if (url) {
+      audioUrlsRef.current[messageId] = url;
+    }
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#EDEDED]">
+    <div className="relative flex h-screen flex-col bg-[#EDEDED]">
+      <div className="sticky top-0 z-20 bg-[#EDEDED] px-4 pb-2 pt-3">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-semibold text-[#1A1A1A]">正在哄 TA</div>
+            <div className="mt-0.5 text-xs text-[#888]">当前语音：{currentVoiceLabel}</div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              className="rounded-full bg-white px-3 py-2 text-sm font-medium text-[#333] shadow-sm active:scale-[0.98]"
+              onClick={() => {
+                stop();
+                setShowVoicePicker(true);
+              }}
+            >
+              换语音
+            </button>
+            <button
+              className="rounded-full bg-[#1A1A1A] px-3 py-2 text-sm font-medium text-white shadow-sm active:scale-[0.98]"
+              onClick={() => {
+                stop();
+                onExit();
+              }}
+            >
+              退出
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* 好感度进度条 */}
       <AffectionBar affection={affection} round={round} maxRounds={maxRounds} lastChange={lastChange} />
 
@@ -76,9 +126,9 @@ export function ChatInterface({
             gender={gender}
             isNew={idx === messages.length - 1}
             hasAudio={msg.role === 'partner'}
-            onPlayAudio={msg.role === 'partner' ? () => handlePlayAudio(msg.id, msg.content) : undefined}
-            isAudioPlaying={audioState.isPlaying && audioState.currentAudioUrl !== null}
-            isAudioLoading={audioState.isLoading}
+            onPlayAudio={msg.role === 'partner' ? () => void handlePlayAudio(msg.id, msg.content) : undefined}
+            isAudioPlaying={audioState.isPlaying && audioState.currentMessageId === msg.id}
+            isAudioLoading={audioState.isLoading && audioState.loadingMessageId === msg.id}
           />
         ))}
 
@@ -118,6 +168,15 @@ export function ChatInterface({
             正在思考...
           </div>
         </div>
+      )}
+
+      {showVoicePicker && (
+        <VoicePickerSheet
+          gender={gender}
+          selectedVoiceId={voiceId}
+          onSelect={onVoiceChange}
+          onClose={() => setShowVoicePicker(false)}
+        />
       )}
     </div>
   );

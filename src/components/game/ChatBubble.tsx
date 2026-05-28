@@ -55,7 +55,15 @@ function UserAvatar() {
   );
 }
 
-export function ChatBubble({ message, gender, isNew, onPlayAudio, hasAudio, isAudioPlaying, isAudioLoading }: ChatBubbleProps) {
+export function ChatBubble({
+  message,
+  gender,
+  isNew,
+  onPlayAudio,
+  hasAudio,
+  isAudioPlaying,
+  isAudioLoading,
+}: ChatBubbleProps) {
   const isPartner = message.role === 'partner';
   const [animated, setAnimated] = useState(false);
 
@@ -80,9 +88,9 @@ export function ChatBubble({ message, gender, isNew, onPlayAudio, hasAudio, isAu
       </div>
 
       {/* 气泡 */}
-      <div className={`max-w-[75%] ${isPartner ? 'items-start' : 'items-end'} flex flex-col`}>
+      <div className={`max-w-[72%] ${isPartner ? 'items-start' : 'items-end'} flex flex-col`}>
         <div
-          className={`rounded-2xl px-4 py-2.5 text-[15px] leading-relaxed ${
+          className={`rounded-2xl px-4 py-2.5 text-[14px] leading-7 ${
             isPartner
               ? 'bg-white text-[#1A1A1A] rounded-tl-sm'
               : 'bg-[#95EC69] text-[#1A1A1A] rounded-tr-sm'
@@ -113,7 +121,7 @@ export function ChatBubble({ message, gender, isNew, onPlayAudio, hasAudio, isAu
                 )}
               </svg>
             )}
-            {isAudioLoading ? '生成中' : isAudioPlaying ? '暂停' : '播放'}
+            {isAudioLoading ? '生成语音中' : isAudioPlaying ? '停止播放' : '播放语音'}
           </button>
         )}
       </div>

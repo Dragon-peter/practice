@@ -17,7 +17,7 @@ export function OptionsList({ options, onSelect, disabled }: OptionsListProps) {
             key={option.id}
             onClick={() => onSelect(option)}
             disabled={disabled}
-            className={`text-left px-3 py-3 rounded-xl text-sm leading-snug transition-all duration-150
+            className={`text-left px-3 py-2.5 rounded-xl text-[13px] leading-6 transition-all duration-150
               bg-white text-[#333] shadow-sm
               ${disabled
                 ? 'opacity-50 cursor-not-allowed'

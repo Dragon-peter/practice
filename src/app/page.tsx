@@ -205,6 +205,8 @@ export default function HomePage() {
           voiceId={state.voiceId}
           isLoading={state.isLoading}
           onSelectOption={handleSelectOption}
+          onVoiceChange={setVoice}
+          onExit={resetGame}
         />
       );
 

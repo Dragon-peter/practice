@@ -5,6 +5,8 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 interface AudioState {
   isPlaying: boolean;
   currentAudioUrl: string | null;
+  currentMessageId: string | null;
+  loadingMessageId: string | null;
   isLoading: boolean;
   error: string | null;
 }
@@ -13,6 +15,8 @@ export function useAudio() {
   const [audioState, setAudioState] = useState<AudioState>({
     isPlaying: false,
     currentAudioUrl: null,
+    currentMessageId: null,
+    loadingMessageId: null,
     isLoading: false,
     error: null,
   });
@@ -40,7 +44,7 @@ export function useAudio() {
   }, []);
 
   // 播放音频
-  const play = useCallback((url: string) => {
+  const play = useCallback((url: string, messageId?: string) => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
@@ -49,17 +53,36 @@ export function useAudio() {
     const audio = new Audio(url);
     audioRef.current = audio;
 
-    setAudioState({ isPlaying: true, currentAudioUrl: url, isLoading: false, error: null });
+    setAudioState({
+      isPlaying: true,
+      currentAudioUrl: url,
+      currentMessageId: messageId ?? null,
+      loadingMessageId: null,
+      isLoading: false,
+      error: null,
+    });
 
     audio.onended = () => {
-      setAudioState(prev => ({ ...prev, isPlaying: false }));
+      setAudioState(prev => ({ ...prev, isPlaying: false, currentMessageId: null }));
     };
     audio.onerror = () => {
-      setAudioState(prev => ({ ...prev, isPlaying: false, error: '音频播放失败' }));
+      setAudioState(prev => ({
+        ...prev,
+        isPlaying: false,
+        currentMessageId: null,
+        loadingMessageId: null,
+        error: '音频播放失败',
+      }));
     };
 
     audio.play().catch(() => {
-      setAudioState(prev => ({ ...prev, isPlaying: false, error: '音频播放失败' }));
+      setAudioState(prev => ({
+        ...prev,
+        isPlaying: false,
+        currentMessageId: null,
+        loadingMessageId: null,
+        error: '音频播放失败',
+      }));
     });
   }, []);
 
@@ -69,17 +92,24 @@ export function useAudio() {
       audioRef.current.pause();
       audioRef.current = null;
     }
-    setAudioState(prev => ({ ...prev, isPlaying: false }));
+    setAudioState(prev => ({ ...prev, isPlaying: false, currentMessageId: null }));
   }, []);
 
   // 自动播放对方消息的语音
-  const playPartnerMessage = useCallback(async (text: string, speakerId: string) => {
-    setAudioState(prev => ({ ...prev, isLoading: true }));
+  const playPartnerMessage = useCallback(async (text: string, speakerId: string, messageId?: string) => {
+    setAudioState(prev => ({
+      ...prev,
+      isLoading: true,
+      loadingMessageId: messageId ?? null,
+      error: null,
+    }));
     const url = await synthesize(text, speakerId);
     if (url) {
-      play(url);
+      play(url, messageId);
+      return url;
     } else {
-      setAudioState(prev => ({ ...prev, isLoading: false }));
+      setAudioState(prev => ({ ...prev, isLoading: false, loadingMessageId: null }));
+      return null;
     }
   }, [synthesize, play]);
 
