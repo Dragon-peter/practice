@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "practice-honghong",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-05-05",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "vars": {
+    "DASHSCOPE_BASE_URL": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "DASHSCOPE_TTS_ENDPOINT": "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
+    "AI_LLM_MODEL": "qwen3.6-flash-2026-04-16",
+    "AI_REVIEW_MODEL": "qwen3.6-flash-2026-04-16",
+    "AI_TTS_MODEL": "qwen3-tts-flash",
+    "AI_REVIEW_TIMEOUT_MS": "20000"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
