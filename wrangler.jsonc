@@ -10,11 +10,12 @@
     "binding": "ASSETS"
   },
   "vars": {
-    "DASHSCOPE_BASE_URL": "https://dashscope.aliyuncs.com/compatible-mode/v1",
-    "DASHSCOPE_TTS_ENDPOINT": "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation",
-    "AI_LLM_MODEL": "qwen3.6-flash-2026-04-16",
-    "AI_REVIEW_MODEL": "qwen3.6-flash-2026-04-16",
-    "AI_TTS_MODEL": "qwen3-tts-flash",
+    "MIMO_BASE_URL": "https://api.xiaomimimo.com/v1",
+    "AI_LLM_BASE_URL": "https://api.xiaomimimo.com/v1",
+    "AI_TTS_ENDPOINT": "https://api.xiaomimimo.com/v1/chat/completions",
+    "AI_LLM_MODEL": "mimo-v2-flash",
+    "AI_REVIEW_MODEL": "mimo-v2-flash",
+    "AI_TTS_MODEL": "mimo-v2.5-tts",
     "AI_REVIEW_TIMEOUT_MS": "20000"
   },
   "observability": {

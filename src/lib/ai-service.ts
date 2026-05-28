@@ -104,8 +104,10 @@ function buildRequestHeaders(apiKey?: string, auth?: AuthHeaderMode) {
 
   if (apiKey) {
     const headerName = auth?.headerName ?? 'Authorization';
-    const prefix = auth?.prefix ?? 'Bearer ';
-    headers.set(headerName, `${prefix}${apiKey}`);
+    const rawPrefix = auth?.prefix ?? 'Bearer ';
+    const normalizedPrefix =
+      rawPrefix.length > 0 && !rawPrefix.endsWith(' ') ? `${rawPrefix} ` : rawPrefix;
+    headers.set(headerName, `${normalizedPrefix}${apiKey}`);
   }
 
   return headers;
@@ -243,6 +245,7 @@ export function extractAudioFromAiResponse(data: unknown) {
   }
 
   const record = data as Record<string, unknown>;
+  const choices = record.choices as Array<Record<string, unknown>> | undefined;
 
   const directAudioUri =
     (typeof record.audioUri === 'string' && record.audioUri) ||
@@ -275,6 +278,35 @@ export function extractAudioFromAiResponse(data: unknown) {
           ? record.audioSize
           : Buffer.from(record.audioBase64, 'base64').length,
     };
+  }
+
+  if (Array.isArray(choices) && choices.length > 0) {
+    const firstChoice = choices[0];
+    if (typeof firstChoice.message === 'object' && firstChoice.message) {
+      const message = firstChoice.message as Record<string, unknown>;
+      if (typeof message.audio === 'object' && message.audio) {
+        const audio = message.audio as Record<string, unknown>;
+        if (typeof audio.data === 'string' && audio.data) {
+          const format =
+            typeof audio.format === 'string' && audio.format
+              ? audio.format
+              : 'mp3';
+          const mimeType =
+            format === 'wav'
+              ? 'audio/wav'
+              : format === 'pcm' || format === 'pcm16'
+                ? 'audio/L16'
+                : 'audio/mpeg';
+          return {
+            audioUri: `data:${mimeType};base64,${audio.data}`,
+            audioSize:
+              typeof audio.size === 'number'
+                ? audio.size
+                : Buffer.from(audio.data, 'base64').length,
+          };
+        }
+      }
+    }
   }
 
   if (typeof record.data === 'object' && record.data) {

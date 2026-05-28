@@ -18,12 +18,17 @@ export async function POST(request: NextRequest) {
     }
 
     const response = await callAiService('tts', {
-      model: resolveConfiguredModel('tts', 'qwen3-tts-flash'),
-      input: {
-        text,
+      model: resolveConfiguredModel('tts', 'mimo-v2.5-tts'),
+      audio: {
+        format: 'mp3',
         voice: speakerId,
-        language_type: 'Chinese',
       },
+      messages: [
+        {
+          role: 'assistant',
+          content: text,
+        },
+      ],
     });
     const { audioUri, audioSize } = extractAudioFromAiResponse(response);
 
