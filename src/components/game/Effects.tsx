@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 
 // 简易撒花效果
 export function ConfettiEffect() {
@@ -90,6 +90,22 @@ export function ConfettiEffect() {
 
 // 心碎动画
 export function HeartbreakEffect() {
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const hideTimer = window.setTimeout(() => {
+      setVisible(false);
+    }, 1400);
+
+    return () => {
+      window.clearTimeout(hideTimer);
+    };
+  }, []);
+
+  if (!visible) {
+    return null;
+  }
+
   return (
     <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-50">
       <div className="animate-heartbreak">
